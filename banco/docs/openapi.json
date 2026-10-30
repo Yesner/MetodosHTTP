@@ -1,0 +1,698 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Banco Demo",
+    "version": "1.0.0",
+    "description": "Para ejecutar solicitudes protegidas pulsa **Authorize** y pega el valor de `BANCO_API_KEY` (sin `X-API-Key:`)."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Servidor actual"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Estado",
+      "description": "Consulta pública para comprobar el servidor"
+    },
+    {
+      "name": "Cuentas",
+      "description": "Crear y consultar cuentas bancarias simuladas"
+    },
+    {
+      "name": "Operaciones",
+      "description": "Depósitos, retiros y transferencias simuladas"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/salud": {
+      "get": {
+        "tags": [
+          "Estado"
+        ],
+        "summary": "Comprobar el estado del servidor",
+        "operationId": "verSalud",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "estado": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "servicio": {
+                      "type": "string",
+                      "example": "Banco Demo SQLite"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cuentas": {
+      "post": {
+        "tags": [
+          "Cuentas"
+        ],
+        "summary": "Crear una cuenta bancaria",
+        "operationId": "crearCuenta",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevaCuenta"
+              },
+              "example": {
+                "titular": "Ana López"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensaje": {
+                      "type": "string",
+                      "example": "Cuenta creada"
+                    },
+                    "cuenta": {
+                      "$ref": "#/components/schemas/Cuenta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos no válidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la clave de API o es incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Cuentas"
+        ],
+        "summary": "Listar cuentas",
+        "operationId": "listarCuentas",
+        "responses": {
+          "200": {
+            "description": "Listado de cuentas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cuentas": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Cuenta"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cuentas/{cuenta_id}": {
+      "get": {
+        "tags": [
+          "Cuentas"
+        ],
+        "summary": "Consultar saldo y datos de una cuenta",
+        "operationId": "consultarCuenta",
+        "parameters": [
+          {
+            "name": "cuenta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Identificador de la cuenta",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cuenta": {
+                      "$ref": "#/components/schemas/Cuenta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cuentas/{cuenta_id}/movimientos": {
+      "get": {
+        "tags": [
+          "Cuentas"
+        ],
+        "summary": "Consultar últimos 50 movimientos",
+        "operationId": "movimientosCuenta",
+        "parameters": [
+          {
+            "name": "cuenta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Identificador de la cuenta",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de movimientos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cuenta_id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "movimientos": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Movimiento"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/depositar": {
+      "post": {
+        "tags": [
+          "Operaciones"
+        ],
+        "summary": "Depositar dinero simulado",
+        "operationId": "depositar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionIndividual"
+              },
+              "example": {
+                "cuenta_id": 1,
+                "monto": "500.00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operación realizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensaje": {
+                      "type": "string",
+                      "example": "Depósito realizado"
+                    },
+                    "saldo": {
+                      "type": "string",
+                      "example": "400.00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos no válidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la clave de API o es incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/retirar": {
+      "post": {
+        "tags": [
+          "Operaciones"
+        ],
+        "summary": "Retirar dinero simulado",
+        "operationId": "retirar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionIndividual"
+              },
+              "example": {
+                "cuenta_id": 1,
+                "monto": "100.00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operación realizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensaje": {
+                      "type": "string",
+                      "example": "Retiro realizado"
+                    },
+                    "saldo": {
+                      "type": "string",
+                      "example": "400.00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos no válidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la clave de API o es incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fondos insuficientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transferir": {
+      "post": {
+        "tags": [
+          "Operaciones"
+        ],
+        "summary": "Transferir entre dos cuentas",
+        "operationId": "transferir",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transferencia"
+              },
+              "example": {
+                "origen_id": 1,
+                "destino_id": 2,
+                "monto": "75.00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transferencia registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensaje": {
+                      "type": "string",
+                      "example": "Transferencia realizada"
+                    },
+                    "monto": {
+                      "type": "string",
+                      "example": "75.00"
+                    },
+                    "origen_id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "destino_id": {
+                      "type": "integer",
+                      "example": 2
+                    },
+                    "saldo_origen": {
+                      "type": "string",
+                      "example": "425.00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos no válidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la clave de API o es incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fondos insuficientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Clave generada localmente por `python configurar.py` y guardada en `.env`. No publicarla en el repositorio."
+      }
+    },
+    "schemas": {
+      "Cuenta": {
+        "type": "object",
+        "required": [
+          "id",
+          "titular",
+          "saldo",
+          "moneda",
+          "creada_en"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "titular": {
+            "type": "string",
+            "example": "Ana López"
+          },
+          "saldo": {
+            "type": "string",
+            "example": "500.00"
+          },
+          "moneda": {
+            "type": "string",
+            "example": "NIO (simulada)"
+          },
+          "creada_en": {
+            "type": "string",
+            "description": "Fecha ISO 8601 en UTC",
+            "example": "2026-10-29T16:00:00.000Z"
+          }
+        }
+      },
+      "Movimiento": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "DEPOSITO",
+              "RETIRO",
+              "TRANSFERENCIA_ENVIADA",
+              "TRANSFERENCIA_RECIBIDA"
+            ]
+          },
+          "monto": {
+            "type": "string",
+            "example": "100.00"
+          },
+          "cuenta_relacionada_id": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "fecha": {
+            "type": "string",
+            "example": "2026-10-29T16:00:00.000Z"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Clave de API ausente o incorrecta"
+          }
+        }
+      },
+      "NuevaCuenta": {
+        "type": "object",
+        "required": [
+          "titular"
+        ],
+        "properties": {
+          "titular": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "example": "Ana López"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Importe": {
+        "type": "string",
+        "description": "Cantidad en córdobas ficticios, mayor que cero y hasta 1,000,000,000. Exactamente 0, 1 o 2 posiciones decimales; no se aceptan valores numéricos JSON.",
+        "example": "150.50"
+      },
+      "OperacionIndividual": {
+        "type": "object",
+        "required": [
+          "cuenta_id",
+          "monto"
+        ],
+        "properties": {
+          "cuenta_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "monto": {
+            "$ref": "#/components/schemas/Importe"
+          }
+        }
+      },
+      "Transferencia": {
+        "type": "object",
+        "required": [
+          "origen_id",
+          "destino_id",
+          "monto"
+        ],
+        "properties": {
+          "origen_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "destino_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          },
+          "monto": {
+            "$ref": "#/components/schemas/Importe"
+          }
+        }
+      }
+    }
+  }
+}

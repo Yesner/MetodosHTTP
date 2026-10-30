@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Banco Demo | Documentación Swagger</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.33.3/swagger-ui.css">
+  <style>
+    body { margin: 0; background: #f8fafc; }
+    .topbar { display: none !important; }
+    .aviso { font: 14px/1.55 system-ui, sans-serif; padding: 12px 20px; background: #e8f2ff; color: #172c48; text-align: center; }
+    .aviso strong { font-weight: 700; }
+    #swagger-ui { max-width: 1300px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="aviso">
+    <strong>Banco de simulación</strong> 
+   
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.33.3/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function () {
+      window.ui = SwaggerUIBundle({
+        url: "/openapi.json",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        filter: true,
+        docExpansion: "list",
+        displayRequestDuration: true,
+        persistAuthorization: false,
+        presets: [SwaggerUIBundle.presets.apis]
+      });
+    };
+  </script>
+</body>
+</html>
